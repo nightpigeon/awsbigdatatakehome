@@ -7,6 +7,7 @@ import gzip
 from io import BytesIO,TextIOWrapper
 import time
 import threading
+import os
 
 def main(event, context):
     
@@ -25,7 +26,7 @@ def main(event, context):
     download_path = '/tmp/{}{}'.format(uuid.uuid4(), key)
     s3_client.download_file(bucket, key, download_path)
     ds = xr.open_dataset(download_path)
-    db='default'
+    db=os.environ['DB_NAME']
     
     
     # Initializing the Parallel threads to load data to athena in Parallel
@@ -76,7 +77,7 @@ def run_s3_athena(ds,*args):
     load_ts=args[3]
     db=args[4]
     table=args[5]
-    athena_output_s3_loc='s3://athenalambdaresults'
+    athena_output_s3_loc=os.environ['ATHENA_OP_LOC']
 
     df=ds["%s" % (var)].to_dataframe() 
     tgt_s3_key=var+"/load_dt="+load_dt+"/ts="+load_ts+"/{}{}".format(uuid.uuid4(),var+".gz")
